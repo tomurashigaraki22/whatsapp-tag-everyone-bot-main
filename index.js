@@ -1,13 +1,25 @@
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 const schedule = require('node-schedule');
-const { giveNewRole, fetchRole } = require('./db/db.js')
-const question = require('./gpt.js')
+const express = require('express');
+const app = express();
 
 console.log("initializing");
 const client = new Client({
-	authStrategy: new LocalAuth(),
-	takeoverOnConflict: true,
+    authStrategy: new LocalAuth(),
+    takeoverOnConflict: true,
+    puppeteer: {
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ]
+    }
 });
 
 client.on("qr", (qr) => {
@@ -194,3 +206,31 @@ client.on('group_join', (notification) => {
   
 
 client.initialize();
+
+// Add Express middleware
+app.use(express.json());
+
+// API endpoint to send message
+app.post('/send/:phone/:message', async (req, res) => {
+    try {
+        const phone = req.params.phone;
+        const message = req.params.message;
+        
+        // Format the phone number to WhatsApp format
+        const chatId = phone.includes('@c.us') ? phone : `${phone}@c.us`;
+        
+        // Send the message
+        await client.sendMessage(chatId, message);
+        
+        res.json({ success: true, message: 'Message sent successfully' });
+    } catch (error) {
+        console.error('Error sending message:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`API Server running on port ${PORT}`);
+});
