@@ -26,10 +26,17 @@ venom
     console.log('Bot is ready!');
 
     // API endpoint for sending messages
-    app.post('/send/:phone/:message', async (req, res) => {
+	app.get('/send', async (req, res) => {
         try {
-            const phone = req.params.phone;
-            const message = req.params.message;
+            const phone = req.query.phone;
+            const message = req.query.message;
+            
+            if (!phone || !message) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Phone number and message are required' 
+                });
+            }
             
             // Format the phone number to WhatsApp format
             const chatId = phone.includes('@c.us') ? phone : `${phone}@c.us`;
@@ -46,7 +53,7 @@ venom
 
     // Start the Express server
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server is running on port ${PORT}`);
     });
   })
