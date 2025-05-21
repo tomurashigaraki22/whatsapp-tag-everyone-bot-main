@@ -2,9 +2,26 @@ const venom = require('venom-bot');
 const express = require('express');
 const app = express();
 
-// Initialize venom-bot
+// Initialize venom-bot with proper session configuration
 venom
-  .create()
+  .create(
+    'whatsapp-session', // Session name
+    undefined, // Catch QR callback
+    undefined, // Status callback
+    {
+      folderNameToken: 'tokens', // Folder name when saving tokens
+      mkdirFolderToken: '', // Folder directory tokens, just inside the venom folder, example: { mkdirFolderToken: '/node_modules', } 
+      headless: true, // Headless chrome
+      devtools: false, // Open devtools by default
+      useChrome: true, // If false will use Chromium instance
+      debug: false, // Opens a debug session
+      logQR: true, // Logs QR automatically in terminal
+      browserArgs: ['--no-sandbox'], // Parameters to be added into the chrome browser instance
+      refreshQR: 15000, // Will refresh QR every 15 seconds, 0 will load QR once. Default is 30 seconds
+      autoClose: 60000, // Will auto close automatically if not synced, 'false' won't auto close. Default is 60 seconds (#milliseconds)
+      disableSpins: true, // Will disable Spinnies animation, useful for containers (docker) for a better log
+    }
+  )
   .then((client) => {
     console.log('Bot is ready!');
 
